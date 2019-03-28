@@ -1,8 +1,24 @@
 import ROOT
 import math
 
+## The nuclear charge probability density
+def Fermi_dist(x, par):
+    rho_0 = par[0]  # nucleon density
+    R = par[1]  # nuclear radius
+    a = par[2]  # skin depth
+    w = par[3]  # deviations from a spherical shape
+    result = x[0] * x[0] * ((1. + w * pow(x[0] / R, 2.)) / (1. + math.exp((x[0] - R) / a)))
+    return rho_0 * result
+
+
+# Fill the nucleus with the charge probability density
+def distance(eleA, eleB):
+    # return pow(pow(eleA.x - eleB.x, 2) + pow(eleA.y - eleB.y, 2) + pow(eleA.z - eleB.z, 2), 1 / 2)
+    return pow(pow(eleA.x - eleB.x, 2) + pow(eleA.y - eleB.y, 2), 1. / 2.)
+
+
 class nucleus():
-    def __init__(self, name, x, y, z, Z, a, w, xsec_NN, ToDraw):
+    def __init__(self, name, x, y, z, Z, a, w, xsec_NN):
         self.name = name
         self.x = x
         self.y = y
@@ -13,8 +29,6 @@ class nucleus():
         self.R = 1.2 * pow(Z, 1. / 3.)
         self.xsec_NN = xsec_NN  # [mb]
         self.list_nuclei = []
-        if ToDraw == True:
-            self.ellipse = ROOT.TEllipse(x, y, self.R, self.R)
 
     def Add_nuclei(self, child_nuclei):
         self.list_nuclei.append(child_nuclei)
@@ -25,8 +39,29 @@ class nucleus():
     def ClearList_nuclei(self):
         self.list_nuclei.clear()
 
+    def Fill_nuclei(self):
+        random = ROOT.TRandom3()
+        r_pdf = ROOT.TF1('fermi', Fermi_dist, 0, 20, 4)
+        r_pdf.SetParameters(1, self.R, self.a, self.w)
+        for inucl in range(self.Z):
+            r = r_pdf.GetRandom(0, self.R)
+            # The probability distribution is typically taken to be uniform in azimuthal and polar angles
+            ctheta = 2. * random.Rndm() - 1.
+            stheta = pow(1. - ctheta * ctheta, 1. / 2.)
+            phi = 2. * random.Rndm() * math.pi
+            child_nuclei_ = nuclei(self)
+            child_nuclei_.SetX(self.x + r * stheta * math.cos(phi))
+            child_nuclei_.SetY(self.y + r * stheta * math.sin(phi))
+            child_nuclei_.SetZ(self.z + r * ctheta)
+            self.Add_nuclei(child_nuclei_)
+
+            del child_nuclei_
+
+        del r_pdf, random
+
+
 class nuclei():
-    def __init__(self, Mom_nucleus, ToDraw):
+    def __init__(self, Mom_nucleus):
         self.Mom_nucleus = Mom_nucleus
         self.D = pow(0.1 * Mom_nucleus.xsec_NN / math.pi, 1. / 2.)  # [fm]
         self.x = 0.
@@ -34,8 +69,6 @@ class nuclei():
         self.z = 0.
         self.Ncollisions = 0
         self.Participant = False  # By default (before collision) the nuclei is spectator
-        if ToDraw == True:
-            self.ellipse = ROOT.TEllipse(0., 0., self.D / 2., self.D / 2.)
 
     def IsParticipant(self):
         self.Participant = True
@@ -43,17 +76,13 @@ class nuclei():
     def IsSpectator(self):
         self.Participant = False
 
-    def SetX(self, x_, ToDraw):
+    def SetX(self, x_):
         self.x = x_
-        if ToDraw == True:
-            self.ellipse.SetX1(x_)
 
-    def SetY(self, y_, ToDraw):
+    def SetY(self, y_):
         self.y = y_
-        if ToDraw == True:
-            self.ellipse.SetY1(y_)
 
-    def SetZ(self, z_, ToDraw):
+    def SetZ(self, z_):
         self.z = z_
 
 
@@ -104,6 +133,21 @@ class Collision_Event():
 
         self.Ncoll = count_coll
         self.IfSetNcoll = True
+
+
+    def Collision(self):
+        list_NucA_IsCol = [False] * self.NucA.Z
+        list_NucB_IsCol = [False] * self.NucB.Z
+
+        for iNucA in range(self.NucA.Z):
+            for iNucB in range(self.NucB.Z):
+
+                if distance(self.NucA.list_nuclei[iNucA], self.NucB.list_nuclei[iNucB]) < 0.5 * (
+                            self.NucA.list_nuclei[iNucA].D + self.NucB.list_nuclei[iNucB].D):
+                    self.NucA.list_nuclei[iNucA].IsParticipant()
+                    self.NucB.list_nuclei[iNucB].IsParticipant()
+                    self.NucA.list_nuclei[iNucA].Ncollisions += 1
+                    self.NucB.list_nuclei[iNucA].Ncollisions += 1
 
 
     def SetEvent(self):

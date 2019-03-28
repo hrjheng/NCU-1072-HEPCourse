@@ -1,59 +1,76 @@
-import IPython.core.pylabtools as pyt
-import ROOT
-import math
-from GlauberMC_classes import *
+import pandas as pd
 
-## The nuclear charge probability density
-def Fermi_dist(x, par):
+### Dictionaries for nuclear charge density parameters
 
-    rho_0 = par[0]  # nucleon density
-    R = par[1]  # nuclear radius
-    a = par[2]  # skin depth
-    w = par[3]  # deviations from a spherical shape
+dic_Z={'Si_28':28.,
+       'S_32':32.,
+       'Ca_40':40.,
+       'Ni_58':58.,
+       'Cu_62':62.,
+       'Au_197':197.,
+       'Pb_207':207.}
 
-    result = x[0] * x[0] * ((1. + w * pow(x[0] / R, 2.)) / (1. + math.exp(
-        (x[0] - R) / a)))
+dic_a={'Si_28':0.580,
+       'S_32':2.191,
+       'Ca_40':0.586,
+       'Ni_58':0.517,
+       'Cu_62':0.596,
+       'Au_197':0.535,
+       'Pb_207':0.546}
 
-    return rho_0 * result
-
-
-# Fill the nucleus with the charge probability density
-def Fill_nuclei(nucleus, ToDraw):
-    random = ROOT.TRandom3()
-    r_pdf = ROOT.TF1('fermi', Fermi_dist, 0, 20, 4)
-    r_pdf.SetParameters(1, nucleus.R, nucleus.a, nucleus.w)
-    for inucl in range(nucleus.Z):
-        r = r_pdf.GetRandom(0, nucleus.R)
-        # The probability distribution is typically taken to be uniform in azimuthal and polar angles
-        ctheta = 2. * random.Rndm() - 1.
-        stheta = pow(1. - ctheta * ctheta, 1. / 2.)
-        phi = 2. * random.Rndm() * math.pi
-        child_nuclei_ = nuclei(nucleus, ToDraw)
-        child_nuclei_.SetX(nucleus.x + r * stheta * math.cos(phi), ToDraw)
-        child_nuclei_.SetY(nucleus.y + r * stheta * math.sin(phi), ToDraw)
-        child_nuclei_.SetZ(nucleus.z + r * ctheta, ToDraw)
-        nucleus.Add_nuclei(child_nuclei_)
-
-        del child_nuclei_
-
-    del r_pdf
+dic_w={'Si_28':-0.233,
+       'S_32':0.16,
+       'Ca_40':-0.161,
+       'Ni_58':-0.1308,
+       'Cu_62':0.,
+       'Au_197':0.,
+       'Pb_207':0.}
 
 
-def distance(eleA, eleB):
-    # return pow(pow(eleA.x - eleB.x, 2) + pow(eleA.y - eleB.y, 2) + pow(eleA.z - eleB.z, 2), 1 / 2)
-    return pow(pow(eleA.x - eleB.x, 2) + pow(eleA.y - eleB.y, 2), 1. / 2.)
+def MakeDataframe(list_event_):
+    list_b = []
+    list_Npart = []
+    list_Ncoll = []
+    list_MeanX = []
+    list_MeanY = []
+    list_MeanX2 = []
+    list_MeanY2 = []
+    list_MeanXY = []
+    list_VarX = []
+    list_VarY = []
+    list_VarXY =[]
+    list_epsRP = []
+    list_epspart = []
 
-def Collision(NucA, NucB):
-    list_NucA_IsCol = [False] * NucA.Z
-    list_NucB_IsCol = [False] * NucB.Z
+    for iev in range(len(list_event_)):
+        list_b.append(list_event_[iev].b)
+        list_Npart.append(list_event_[iev].Npart)
+        list_Ncoll.append(list_event_[iev].Ncoll)
+        list_MeanX.append(list_event_[iev].MeanX)
+        list_MeanY.append(list_event_[iev].MeanY)
+        list_MeanX2.append(list_event_[iev].MeanX2)
+        list_MeanY2.append(list_event_[iev].MeanY2)
+        list_MeanXY.append(list_event_[iev].MeanXY)
+        list_VarX.append(list_event_[iev].VarX)
+        list_VarY.append(list_event_[iev].VarY)
+        list_VarXY.append(list_event_[iev].VarXY)
+        list_epsRP.append(list_event_[iev].eps_RP)
+        list_epspart.append(list_event_[iev].eps_part)
 
-    for iNucA in range(NucA.Z):
-        for iNucB in range(NucB.Z):
 
-            if distance(
-                    NucA.list_nuclei[iNucA], NucB.list_nuclei[iNucB]) < 0.5 * (
-                        NucA.list_nuclei[iNucA].D + NucB.list_nuclei[iNucB].D):
-                NucA.list_nuclei[iNucA].IsParticipant()
-                NucB.list_nuclei[iNucB].IsParticipant()
-                NucA.list_nuclei[iNucA].Ncollisions += 1
-                NucB.list_nuclei[iNucA].Ncollisions += 1
+    d = {'b': list_b,
+         'Npart': list_Npart,
+         'Ncoll': list_Ncoll,
+         'MeanX': list_MeanX,
+         'MeanY': list_MeanY,
+         'MeanX2': list_MeanX2,
+         'MeanY2': list_MeanY2,
+         'MeanXY': list_MeanXY,
+         'VarX': list_VarX,
+         'VarY': list_VarY,
+         'epsRP': list_epsRP,
+         'epspart': list_epspart}
+
+    df = pd.DataFrame(data=d)
+
+    return df
