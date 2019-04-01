@@ -30,6 +30,11 @@ class nucleus():
         self.xsec_NN = xsec_NN  # [mb]
         self.list_nuclei = []
 
+    def SetPosition(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
     def Add_nuclei(self, child_nuclei):
         self.list_nuclei.append(child_nuclei)
 
@@ -41,7 +46,7 @@ class nucleus():
 
     def Fill_nuclei(self):
         random = ROOT.TRandom3()
-        r_pdf = ROOT.TF1('fermi', Fermi_dist, 0, 20, 4)
+        r_pdf = ROOT.TF1('fermi', Fermi_dist, 0, 14, 4)
         r_pdf.SetParameters(1, self.R, self.a, self.w)
         for inucl in range(self.Z):
             r = r_pdf.GetRandom(0, self.R)
@@ -87,9 +92,7 @@ class nuclei():
 
 
 class Collision_Event():
-    def __init__(self, NucA, NucB, b):
-        self.NucA = NucA
-        self.NucB = NucB
+    def __init__(self, NucA, NucB, b, SaveNuc):
         self.b = b
         self.IfSetNpart = False
         self.IfSetNcoll = False
@@ -105,74 +108,77 @@ class Collision_Event():
         self.VarXY = 0.
         self.eps_RP = 0.
         self.eps_part = 0.
+        if SaveNuc:
+            self.NucA = NucA
+            self.NucB = NucB
 
 
-    def SetNpart(self):
+    def SetNpart(self, NucA, NucB):
         count_part = 0
-        for iNucA in range(len(self.NucA.list_nuclei)):
-            if self.NucA.list_nuclei[iNucA].Participant == True:
+        for iNucA in range(len(NucA.list_nuclei)):
+            if NucA.list_nuclei[iNucA].Participant == True:
                 count_part += 1
 
-        for iNucB in range(len(self.NucB.list_nuclei)):
-            if self.NucB.list_nuclei[iNucB].Participant == True:
+        for iNucB in range(len(NucB.list_nuclei)):
+            if NucB.list_nuclei[iNucB].Participant == True:
                 count_part += 1
 
         self.Npart = count_part
         self.IfSetNpart = True
 
 
-    def SetNcoll(self):
+    def SetNcoll(self, NucA, NucB):
         count_coll = 0
-        for iNucA in range(len(self.NucA.list_nuclei)):
-            if self.NucA.list_nuclei[iNucA].Participant == True:
-                count_coll += self.NucA.list_nuclei[iNucA].Ncollisions
+        for iNucA in range(len(NucA.list_nuclei)):
+            if NucA.list_nuclei[iNucA].Participant == True:
+                count_coll += NucA.list_nuclei[iNucA].Ncollisions
 
-        for iNucB in range(len(self.NucB.list_nuclei)):
-            if self.NucB.list_nuclei[iNucB].Participant == True:
-                count_coll += self.NucB.list_nuclei[iNucB].Ncollisions
+        for iNucB in range(len(NucB.list_nuclei)):
+            if NucB.list_nuclei[iNucB].Participant == True:
+                count_coll += NucB.list_nuclei[iNucB].Ncollisions
 
         self.Ncoll = count_coll
         self.IfSetNcoll = True
 
 
-    def Collision(self):
-        list_NucA_IsCol = [False] * self.NucA.Z
-        list_NucB_IsCol = [False] * self.NucB.Z
+    def Collision(self, NucA, NucB):
+        list_NucA_IsCol = [False] * NucA.Z
+        list_NucB_IsCol = [False] * NucB.Z
 
-        for iNucA in range(self.NucA.Z):
-            for iNucB in range(self.NucB.Z):
+        for iNucA in range(NucA.Z):
+            for iNucB in range(NucB.Z):
 
-                if distance(self.NucA.list_nuclei[iNucA], self.NucB.list_nuclei[iNucB]) < 0.5 * (
-                            self.NucA.list_nuclei[iNucA].D + self.NucB.list_nuclei[iNucB].D):
-                    self.NucA.list_nuclei[iNucA].IsParticipant()
-                    self.NucB.list_nuclei[iNucB].IsParticipant()
-                    self.NucA.list_nuclei[iNucA].Ncollisions += 1
-                    self.NucB.list_nuclei[iNucA].Ncollisions += 1
+                if distance(NucA.list_nuclei[iNucA], NucB.list_nuclei[iNucB]) < 0.5 * (
+                            NucA.list_nuclei[iNucA].D + NucB.list_nuclei[iNucB].D):
+                    NucA.list_nuclei[iNucA].IsParticipant()
+                    NucB.list_nuclei[iNucB].IsParticipant()
+                    NucA.list_nuclei[iNucA].Ncollisions += 1
+                    NucB.list_nuclei[iNucA].Ncollisions += 1
 
 
-    def SetEvent(self):
+    def SetEvent(self, NucA, NucB):
         if self.IfSetNpart == False:
-            Collision_Event.SetNpart(self)
+            Collision_Event.SetNpart(self, NucA, NucB)
 
         if self.IfSetNcoll == False:
-            Collision_Event.SetNcoll(self)
+            Collision_Event.SetNcoll(self, NucA, NucB)
 
         meanx = meany = meanx2 = meany2 = meanxy = 0.
-        for iNucA in range(len(self.NucA.list_nuclei)):
-            if self.NucA.list_nuclei[iNucA].Participant == True:
-                meanx += self.NucA.list_nuclei[iNucA].x
-                meany += self.NucA.list_nuclei[iNucA].y
-                meanx2 += self.NucA.list_nuclei[iNucA].x * self.NucA.list_nuclei[iNucA].x
-                meany2 += self.NucA.list_nuclei[iNucA].y * self.NucA.list_nuclei[iNucA].y
-                meanxy += self.NucA.list_nuclei[iNucA].x * self.NucA.list_nuclei[iNucA].y
+        for iNucA in range(len(NucA.list_nuclei)):
+            if NucA.list_nuclei[iNucA].Participant == True:
+                meanx += NucA.list_nuclei[iNucA].x
+                meany += NucA.list_nuclei[iNucA].y
+                meanx2 += NucA.list_nuclei[iNucA].x * NucA.list_nuclei[iNucA].x
+                meany2 += NucA.list_nuclei[iNucA].y * NucA.list_nuclei[iNucA].y
+                meanxy += NucA.list_nuclei[iNucA].x * NucA.list_nuclei[iNucA].y
 
-        for iNucB in range(len(self.NucB.list_nuclei)):
-            if self.NucB.list_nuclei[iNucB].Participant == True:
-                meanx += self.NucB.list_nuclei[iNucB].x
-                meany += self.NucB.list_nuclei[iNucB].y
-                meanx2 += self.NucB.list_nuclei[iNucB].x * self.NucB.list_nuclei[iNucB].x
-                meany2 += self.NucB.list_nuclei[iNucB].y * self.NucB.list_nuclei[iNucB].y
-                meanxy += self.NucB.list_nuclei[iNucB].x * self.NucB.list_nuclei[iNucB].y
+        for iNucB in range(len(NucB.list_nuclei)):
+            if NucB.list_nuclei[iNucB].Participant == True:
+                meanx += NucB.list_nuclei[iNucB].x
+                meany += NucB.list_nuclei[iNucB].y
+                meanx2 += NucB.list_nuclei[iNucB].x * NucB.list_nuclei[iNucB].x
+                meany2 += NucB.list_nuclei[iNucB].y * NucB.list_nuclei[iNucB].y
+                meanxy += NucB.list_nuclei[iNucB].x * NucB.list_nuclei[iNucB].y
 
         if self.Npart > 0.:
             self.MeanX = meanx / float(self.Npart)
