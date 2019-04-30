@@ -68,6 +68,9 @@ TH2F* hist_signal(TString fname, TString histname, int nbinx, float minx, float 
                         if(fabs(v_eta->at(itrk))>1.6 || v_pt->at(itrk) < 1.) continue;
                         if(fabs(v_eta->at(jtrk))>1.6 || v_pt->at(jtrk) < 1.) continue;
 
+                        if(fabs(deltaEta(v_eta->at(itrk),v_eta->at(jtrk))) < 1.) continue;
+                        if(v_pt->at(itrk) > 2. || v_pt->at(jtrk) > 2.) continue;
+
                         ntracks++;
 
                         hM->Fill(deltaEta(v_eta->at(itrk),v_eta->at(jtrk)), deltaPhi(v_phi->at(itrk),v_phi->at(jtrk)));
@@ -120,8 +123,8 @@ TH2F* hist_bkg(TString fname, TString histname, int nbinx, float minx, float max
       delete file;
 
       TH2F *hM = new TH2F(histname.Data(),histname.Data(),nbinx,minx,maxx,nbiny,miny,maxy);
-      TH2F *hM_check_eta = new TH2F("hM_check_eta","",64,-1.6,1.6,64,-1.6,1.6);
-      TH2F *hM_check_phi = new TH2F("hM_check_phi","",70,-3.5,3.5,70,-3.5,3.5);
+      // TH2F *hM_check_eta = new TH2F("hM_check_eta","",64,-1.6,1.6,64,-1.6,1.6);
+      // TH2F *hM_check_phi = new TH2F("hM_check_phi","",70,-3.5,3.5,70,-3.5,3.5);
 
       std::vector<float> v_pt_ev1;
       std::vector<float> v_pt_ev2;
@@ -143,14 +146,17 @@ TH2F* hist_bkg(TString fname, TString histname, int nbinx, float minx, float max
                         if(fabs(v_eta_ev1[itrk])>1.6 || v_pt_ev1[itrk] < 1.) continue;
                         if(fabs(v_eta_ev2[jtrk])>1.6 || v_pt_ev2[jtrk] < 1.) continue;
 
+                        if(fabs(deltaEta(v_eta_ev1[itrk],v_eta_ev2[jtrk])) < 1.) continue;
+                        if(v_pt_ev1[itrk] > 2. || v_pt_ev2[jtrk] > 2.) continue;
+
                         hM->Fill(deltaEta(v_eta_ev1[itrk],v_eta_ev2[jtrk]), deltaPhi(v_phi_ev1[itrk],v_phi_ev2[jtrk]));
 
-                        if(deltaEta(v_eta_ev1[itrk],v_eta_ev2[jtrk]) < -3. && (deltaPhi(v_phi_ev1[itrk],v_phi_ev2[jtrk])>2.8 && deltaPhi(v_phi_ev1[itrk],v_phi_ev2[jtrk])<2.9))
-                        {
-                              // cout << v_eta_ev1[itrk] << " " << v_eta_ev2[jtrk] << " " << v_phi_ev1[itrk] << " " << v_phi_ev2[jtrk] << endl;
-                              hM_check_eta->Fill(v_eta_ev1[itrk],v_eta_ev2[jtrk]);
-                              hM_check_phi->Fill(v_phi_ev1[itrk],v_phi_ev2[jtrk]);
-                        }
+                        // if(deltaEta(v_eta_ev1[itrk],v_eta_ev2[jtrk]) < -3. && (deltaPhi(v_phi_ev1[itrk],v_phi_ev2[jtrk])>2.8 && deltaPhi(v_phi_ev1[itrk],v_phi_ev2[jtrk])<2.9))
+                        // {
+                        //       // cout << v_eta_ev1[itrk] << " " << v_eta_ev2[jtrk] << " " << v_phi_ev1[itrk] << " " << v_phi_ev2[jtrk] << endl;
+                        //       hM_check_eta->Fill(v_eta_ev1[itrk],v_eta_ev2[jtrk]);
+                        //       hM_check_phi->Fill(v_phi_ev1[itrk],v_phi_ev2[jtrk]);
+                        // }
                   }
             }
 
@@ -163,30 +169,30 @@ TH2F* hist_bkg(TString fname, TString histname, int nbinx, float minx, float max
             v_phi_ev2.clear();
       }
 
-      TFile *ftmp = new TFile("check-hist.root","RECREATE");
-      ftmp->cd();
-      hM_check_eta->Write();
-      hM_check_phi->Write();
-      ftmp->Close();
+      // TFile *ftmp = new TFile("check-hist.root","RECREATE");
+      // ftmp->cd();
+      // hM_check_eta->Write();
+      // hM_check_phi->Write();
+      // ftmp->Close();
 
       return hM;
 }
 
 int main(int argc, char *argv[]) {
 
-      TH2F *hM_sig = hist_signal("./data/data.root","hM_sig",20,-4,4,35,-2,5);
-      TH2F *hM_sig_2 = hist_signal("./data/data.root","hM_sig_zoom1",25,-3.5,-2.5,20,2.8,3.2);
-      TH2F *hM_bkg = hist_bkg("./data/data.root","hM_bkg",20,-4,4,35,-2,5);
-      TH2F *hM_bkg_2 = hist_bkg("./data/data.root","hM_bkg_zoom1",25,-3.5,-2.5,20,2.8,3.2);
+      TH2F *hM_sig = hist_signal("./data/data_20k.root","hM_sig",20,-4,4,35,-2,5);
+      // TH2F *hM_sig_2 = hist_signal("./data/data_20k.root","hM_sig_zoom1",25,-3.5,-2.5,20,2.8,3.2);
+      TH2F *hM_bkg = hist_bkg("./data/data_20k.root","hM_bkg",20,-4,4,35,-2,5);
+      // TH2F *hM_bkg_2 = hist_bkg("./data/data_20k.root","hM_bkg_zoom1",25,-3.5,-2.5,20,2.8,3.2);
 
 
       system("mkdir -p ./plots");
-      TFile *fout = new TFile("./plots/hist_corr.root","RECREATE");
+      TFile *fout = new TFile("./plots/hist_corr_20k.root","RECREATE");
       fout->cd();
       hM_sig->Write();
-      hM_sig_2->Write();
+      // hM_sig_2->Write();
       hM_bkg->Write();
-      hM_bkg_2->Write();
+      // hM_bkg_2->Write();
       fout->Close();
 
       return 0;

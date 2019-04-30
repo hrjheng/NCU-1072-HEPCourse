@@ -47,7 +47,8 @@ int main(int argc, char *argv[]) {
       vector<float> v_phi; v_phi.clear();
       vector<int> v_q; v_q.clear();
 
-      std::ifstream in("PbPb_5TeV_Cent40_50.txt");
+      // std::ifstream in("PbPb_5TeV_Cent40_50.txt");
+      std::ifstream in("PbPb_2015_Cent_40_50_20k.txt");
       if(in.is_open()){
             std::string line;
             while (getline(in, line))
@@ -89,8 +90,8 @@ int main(int argc, char *argv[]) {
       in.close();
 
       system("mkdir -p ./data");
-      minitree->SaveToFile("./data/data.root");
-      TFile *f_hM = new TFile("./data/histogram.root","RECREATE");
+      minitree->SaveToFile("./data/data_20k.root");
+      TFile *f_hM = new TFile("./data/histogram_20k.root","RECREATE");
       f_hM->cd();
       hM_pt->Write();
       hM_eta->Write();
