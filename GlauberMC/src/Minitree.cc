@@ -1,3 +1,6 @@
+#include <iostream>
+#include <vector>
+
 #include <TTree.h>
 #include <TFile.h>
 #include <TObject.h>
@@ -22,6 +25,16 @@ Minitree::Minitree() {
       _tree->Branch("VarXY",&_VarXY);
       _tree->Branch("eps_RP",&_eps_RP);
       _tree->Branch("eps_part",&_eps_part);
+      // _nucleon_x.clear();
+      // _nucleon_y.clear();
+      // _nucleon_z.clear();
+      // _isparti.clear();
+      // _nucleon_D.clear();
+      _tree->Branch("Nucleon_x",&_nucleon_x);
+      _tree->Branch("Nucleon_y",&_nucleon_y);
+      _tree->Branch("Nucleon_z",&_nucleon_z);
+      _tree->Branch("Nucleon_IsPart",&_isparti);
+      _tree->Branch("Nucleon_D",&_nucleon_D);
 }
 
 void Minitree::FillEvent(Event *ev) {
@@ -38,6 +51,11 @@ void Minitree::FillEvent(Event *ev) {
       _VarXY = ev->VarXY();
       _eps_RP = ev->eps_RP();
       _eps_part = ev->eps_part();
+      _nucleon_x = ev->Nucleon_x();
+      _nucleon_y = ev->Nucleon_y();
+      _nucleon_z = ev->Nucleon_z();
+      _isparti = ev->vec_IsParti();
+      _nucleon_D = ev->vec_Nuc_D();
 
       _tree->Fill();
 }
@@ -46,4 +64,5 @@ void Minitree::SaveToFile(TString filename) {
       TFile *outfile = TFile::Open(filename.Data(), "RECREATE");
       outfile->cd();
       _tree->Write("", TObject::kOverwrite);
+      outfile->Close();
 }

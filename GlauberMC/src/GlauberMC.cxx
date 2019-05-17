@@ -18,6 +18,8 @@ int main(int argc, char *argv[]) {
       TString prefix_B = (B>0.0) ? TString(argv[2]) : "Random";
       float XS_NN = TString(argv[3]).Atof();
       int Nevt = TString(argv[4]).Atoi();
+      int ToSaveNucleon = TString(argv[5]).Atoi();
+      bool ToSave = (ToSaveNucleon==0) ? false : true;
 
       Minitree *minitree = new Minitree();
 
@@ -43,6 +45,7 @@ int main(int argc, char *argv[]) {
             if (B < 0.) { b = TMath::Sqrt( (bmax*bmax-bmin*bmin) * (rand->Rndm()) + bmin*bmin ); }
             else { b = B; }
 
+            if(b>3.5) continue;
             NucleusA->SetPosition(0. + b/2, 0., 0.);
             NucleusB->SetPosition(0. - b/2, 0., 0.);
             NucleusA->Fill_nuclei();
@@ -50,14 +53,14 @@ int main(int argc, char *argv[]) {
             Event *event = new Event(NucleusA,NucleusB,b);
             if(event->Make_Collision() == true)
             {
-                  event->SetEvent();
+                  event->SetEvent(ToSave);
                   ievt++;
                   minitree->FillEvent(event);
             }
 
             NucleusA->Refresh();
             NucleusB->Refresh();
-            delete event;
+            // delete event;
       }
       system("mkdir -p ./collision-data/EventTree");
       minitree->SaveToFile("./collision-data/EventTree/"+NucleusType+"-IP"+prefix_B+"fm-XSNN"+TString(argv[3])+"mb-Nevt"+TString(argv[4])+".root");

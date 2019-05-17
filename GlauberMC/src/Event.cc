@@ -1,3 +1,5 @@
+#include <iostream>
+#include <vector>
 #include <TString.h>
 #include <TRandom3.h>
 #include <TObject.h>
@@ -24,6 +26,11 @@ Event::Event(Nucleus *NucA, Nucleus *NucB, float b) {
       _eps_RP = 0.0;
       _eps_part = 0.0;
       _HasColl = false;
+      _Nucleon_x.clear();
+      _Nucleon_y.clear();
+      _Nucleon_z.clear();
+      _IsParti.clear();
+      _Nuc_D.clear();
 }
 
 void Event::Reset() {
@@ -39,6 +46,11 @@ void Event::Reset() {
       _VarXY = 0.0;
       _eps_RP = 0.0;
       _eps_part = 0.0;
+      _Nucleon_x.clear();
+      _Nucleon_y.clear();
+      _Nucleon_z.clear();
+      _IsParti.clear();
+      _Nuc_D.clear();
 }
 
 int Event::Npart() {
@@ -93,11 +105,31 @@ float Event::eps_part() {
       return (_eps_part);
 }
 
+std::vector<float> Event::Nucleon_x() {
+      return (_Nucleon_x);
+}
+
+std::vector<float> Event::Nucleon_y() {
+      return (_Nucleon_y);
+}
+
+std::vector<float> Event::Nucleon_z() {
+      return (_Nucleon_z);
+}
+
+std::vector<int> Event::vec_IsParti() {
+      return (_IsParti);
+}
+
+std::vector<float> Event::vec_Nuc_D() {
+      return (_Nuc_D);
+}
+
 float Event::distance(Nucleon *eleA, Nucleon *eleB) {
       return (TMath::Sqrt(TMath::Power(eleA->x() - eleB->x(), 2) + TMath::Power(eleA->y() - eleB->y(), 2)));
 }
 
-void Event::SetEvent() {
+void Event::SetEvent(bool SaveNucleon) {
       Reset();
       if(_HasColl == false)
       {
@@ -108,6 +140,12 @@ void Event::SetEvent() {
       for(int iNucA = 0; iNucA < _NucA->Z(); iNucA++)
       {
             Nucleon *nucleon_NucA = (Nucleon*)(_NucA->list_nuclei()->At(iNucA));
+            if(SaveNucleon) _Nucleon_x.push_back(nucleon_NucA->x());
+            if(SaveNucleon) _Nucleon_y.push_back(nucleon_NucA->y());
+            if(SaveNucleon) _Nucleon_z.push_back(nucleon_NucA->z());
+            if(SaveNucleon) _IsParti.push_back((nucleon_NucA->IsParticipant()) ? 1 : 0);
+            if(SaveNucleon) _Nuc_D.push_back(nucleon_NucA->D());
+
             if(nucleon_NucA->IsParticipant())
             {
                   _Npart++;
@@ -122,6 +160,12 @@ void Event::SetEvent() {
       for(int iNucB = 0; iNucB < _NucB->Z(); iNucB++)
       {
             Nucleon *nucleon_NucB = (Nucleon*)(_NucB->list_nuclei()->At(iNucB));
+            if(SaveNucleon) _Nucleon_x.push_back(nucleon_NucB->x());
+            if(SaveNucleon) _Nucleon_y.push_back(nucleon_NucB->y());
+            if(SaveNucleon) _Nucleon_z.push_back(nucleon_NucB->z());
+            if(SaveNucleon) _IsParti.push_back((nucleon_NucB->IsParticipant()) ? 1 : 0);
+            if(SaveNucleon) _Nuc_D.push_back(nucleon_NucB->D());
+
             if(nucleon_NucB->IsParticipant())
             {
                   _Npart++;

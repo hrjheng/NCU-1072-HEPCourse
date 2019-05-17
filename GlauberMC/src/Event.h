@@ -1,3 +1,5 @@
+#include <iostream>
+#include <vector>
 #include <string>
 #include <TRandom3.h>
 using namespace std;
@@ -19,9 +21,13 @@ public:
       float VarXY();
       float eps_RP();
       float eps_part();
-
+      std::vector<float> Nucleon_x();
+      std::vector<float> Nucleon_y();
+      std::vector<float> Nucleon_z();
+      std::vector<int> vec_IsParti();
+      std::vector<float> vec_Nuc_D();
       bool Make_Collision();
-      void SetEvent();
+      void SetEvent(bool);
 
 
 private:
@@ -40,6 +46,11 @@ private:
       float _VarXY;
       float _eps_RP;
       float _eps_part;
+      std::vector<float> _Nucleon_x;
+      std::vector<float> _Nucleon_y;
+      std::vector<float> _Nucleon_z;
+      std::vector<int> _IsParti;
+      std::vector<float> _Nuc_D;
 
       TRandom3 *_random;
 
