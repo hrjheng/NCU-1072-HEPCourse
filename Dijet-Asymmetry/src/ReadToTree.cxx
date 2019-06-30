@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
       vector<float> v_eta; v_eta.clear();
       vector<float> v_phi; v_phi.clear();
 
-      std::ifstream in("jet_data_pp_2.txt");
+      std::ifstream in("jet_data_pp_v2.txt");
       if(in.is_open()){
             std::string line;
             while (getline(in, line))
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
                         if(ev>-1)
                         {
                               Event *evt = new Event(v_pt,v_eta,v_phi);
-                              if (v_pt.size()!=2) cout << ev << " " << v_pt.size() << endl;
+                              // if (v_pt.size()!=2) cout << ev << " " << v_pt.size() << endl;
                               minitree->FillEvent(evt,ev);
                         }
 
@@ -75,13 +75,13 @@ int main(int argc, char *argv[]) {
                   v_phi.push_back(result[2]);
             }
             Event *evt = new Event(v_pt,v_eta,v_phi);
-            if (v_pt.size()!=2) cout << ev << " " << v_pt.size() << endl;
+            // if (v_pt.size()!=2) cout << ev << " " << v_pt.size() << endl;
             minitree->FillEvent(evt,ev);
       }
       in.close();
 
       system("mkdir -p ./data");
-      minitree->SaveToFile("./data/dijet_events_2.root");
+      minitree->SaveToFile("./data/dijet_events_v2.root");
 
       return 0;
 }

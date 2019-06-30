@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
                   hM_eta->Fill((tmpHit1->Eta()+eta2_tmp)/2.);
             }
       }
-
+      
       TFile *fout = new TFile("histogram.root","RECREATE");
       fout->cd();
       hM->Write();

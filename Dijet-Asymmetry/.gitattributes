@@ -1,0 +1,4 @@
+jet_data_pp.txt filter=lfs diff=lfs merge=lfs -text
+jet_data_pp_v2.txt filter=lfs diff=lfs merge=lfs -text
+data/dijet_events.root filter=lfs diff=lfs merge=lfs -text
+data/dijet_events_v2.root filter=lfs diff=lfs merge=lfs -text
